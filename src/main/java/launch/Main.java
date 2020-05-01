@@ -23,9 +23,9 @@ public class Main {
         try {
             File root;
             String runningJarPath = Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath().replaceAll("\\\\", "/");
-            Files.walk(Paths.get("/app"))
-                    .filter(Files::isRegularFile)
-                    .forEach(System.out::println);
+//            Files.walk(Paths.get("/app"))
+//                    .filter(Files::isRegularFile)
+//                    .forEach(System.out::println);
             int lastIndexOf = runningJarPath.lastIndexOf("/target/");
             if (lastIndexOf < 0) {
                 root = new File("");
@@ -34,7 +34,7 @@ public class Main {
             }
             System.out.println("application resolved root folder: " + root.getAbsolutePath());
             return root;
-        } catch (URISyntaxException | IOException ex) {
+        } catch (URISyntaxException ex) {
             System.err.println("exception " + ex.getMessage());
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -58,7 +58,7 @@ public class Main {
 
         tomcat.setPort(Integer.parseInt(webPort));
         tomcat.getConnector();
-        File webContentFolder = new File(root.getAbsolutePath(), "src/main/webapp/");
+        File webContentFolder = new File(root.getAbsolutePath(), "target/classes");
         if (!webContentFolder.exists()) {
             webContentFolder = Files.createTempDirectory("default-doc-base").toFile();
         }
