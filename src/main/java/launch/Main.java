@@ -1,9 +1,11 @@
 package launch;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.apache.catalina.WebResourceRoot;
 import org.apache.catalina.WebResourceSet;
@@ -12,8 +14,8 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.webresources.DirResourceSet;
 import org.apache.catalina.webresources.EmptyResourceSet;
 import org.apache.catalina.webresources.StandardRoot;
-import org.apache.tomcat.util.scan.Constants;
 import org.apache.tomcat.util.scan.StandardJarScanFilter;
+import org.apache.tomcat.util.scan.StandardJarScanner;
 
 public class Main {
 
@@ -21,6 +23,9 @@ public class Main {
         try {
             File root;
             String runningJarPath = Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath().replaceAll("\\\\", "/");
+            Files.walk(Paths.get("/app"))
+                    .filter(Files::isRegularFile)
+                    .forEach(System.out::println);
             int lastIndexOf = runningJarPath.lastIndexOf("/target/");
             if (lastIndexOf < 0) {
                 root = new File("");
@@ -29,7 +34,9 @@ public class Main {
             }
             System.out.println("application resolved root folder: " + root.getAbsolutePath());
             return root;
-        } catch (URISyntaxException ex) {
+        } catch (URISyntaxException | IOException ex) {
+            System.err.println("exception " + ex.getMessage());
+            ex.printStackTrace();
             throw new RuntimeException(ex);
         }
     }
@@ -49,15 +56,23 @@ public class Main {
             webPort = "8080";
         }
 
-        tomcat.setPort(Integer.valueOf(webPort));
+        tomcat.setPort(Integer.parseInt(webPort));
+        tomcat.getConnector();
         File webContentFolder = new File(root.getAbsolutePath(), "src/main/webapp/");
         if (!webContentFolder.exists()) {
             webContentFolder = Files.createTempDirectory("default-doc-base").toFile();
         }
         StandardContext ctx = (StandardContext) tomcat.addWebapp("", webContentFolder.getAbsolutePath());
+//        StandardContext ctx = (StandardContext) tomcat.addWebapp("", new File(".").getAbsolutePath());
         //Set execution independent of current thread context classloader (compatibility with exec:java mojo)
         ctx.setParentClassLoader(Main.class.getClassLoader());
-
+        // hide warning message
+        StandardJarScanFilter jarScanFilter = new StandardJarScanFilter();
+        jarScanFilter.setDefaultPluggabilityScan(false);
+        jarScanFilter.setDefaultTldScan(false);
+        StandardJarScanner standardJarScanner = new StandardJarScanner();
+        standardJarScanner.setJarScanFilter(jarScanFilter);
+        ctx.setJarScanner(standardJarScanner);
         System.out.println("configuring app with basedir: " + webContentFolder.getAbsolutePath());
 
         // Declare an alternative location for your "WEB-INF/classes" dir
@@ -74,6 +89,7 @@ public class Main {
         }
         resources.addPreResources(resourceSet);
         ctx.setResources(resources);
+//        ctx.addWelcomeFile("index.html");
 
         tomcat.start();
         tomcat.getServer().await();
