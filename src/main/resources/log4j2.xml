@@ -14,7 +14,7 @@
     </Async>
   </Appenders>
   <Loggers>
-    <Logger name="org.quartz" level="ERROR"/>
+    <Logger name="org.apache" level="ERROR"/>
     <Root level="debug">
       <AppenderRef ref="Console"/>
       <AppenderRef ref="Async"/>

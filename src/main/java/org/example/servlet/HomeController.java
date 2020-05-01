@@ -1,4 +1,4 @@
-package servlet;
+package org.example.servlet;
 
 import j2html.tags.ContainerTag;
 import org.slf4j.Logger;
@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static j2html.TagCreator.*;
-import static servlet.HTMLTemplates.*;
+import static org.example.servlet.HTMLTemplates.*;
 
 @WebServlet(name = "home", urlPatterns = "/home", loadOnStartup = 1)
 public class HomeController extends HttpServlet {

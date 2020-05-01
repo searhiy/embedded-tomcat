@@ -1,4 +1,4 @@
-package servlet;
+package org.example.servlet;
 
 import j2html.tags.ContainerTag;
 
